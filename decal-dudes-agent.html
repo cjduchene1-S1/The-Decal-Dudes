@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>The Decal Dudes — AI Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --yellow: #FFD700;
+  --yellow-dark: #e6c200;
+  --yellow-glow: rgba(255,215,0,0.2);
+  --black: #0a0a0a;
+  --dark: #111111;
+  --panel: #1a1a1a;
+  --card: #222222;
+  --card-hover: #2a2a2a;
+  --border: rgba(255,215,0,0.15);
+  --border-bright: rgba(255,215,0,0.4);
+  --text: #f5f5f5;
+  --text-sec: #aaaaaa;
+  --text-muted: #666666;
+  --success: #00e096;
+  --warning: #ff9500;
+  --danger: #ff3b5c;
+  --purple: #9b6dff;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family:'Barlow',sans-serif;
+  background:var(--black);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* BG TEXTURE */
+.bg-texture {
+  position:fixed; inset:0;
+  background-image: radial-gradient(circle at 20% 20%, rgba(255,215,0,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255,215,0,0.03) 0%, transparent 50%);
+  pointer-events:none; z-index:0;
+}
+.bg-grid {
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(255,215,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,215,0,0.03) 1px, transparent 1px);
+  background-size:50px 50px;
+  pointer-events:none; z-index:0;
+}
+
+/* APP SHELL */
+.app { position:relative; z-index:1; display:flex; flex-direction:column; min-height:100vh; }
+
+/* TOPBAR */
+.topbar {
+  background:rgba(10,10,10,0.97);
+  border-bottom:2px solid var(--yellow);
+  padding:0 24px;
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky; top:0; z-index:200;
+  box-shadow:0 4px 32px rgba(255,215,0,0.08);
+}
+.logo { display:flex; align-items:center; gap:14px; }
+.logo-icon {
+  width:42px; height:42px;
+  background:var(--yellow);
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px;
+  flex-shrink:0;
+}
+.logo-name {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:26px;
+  letter-spacing:3px;
+  color:var(--yellow);
+  line-height:1;
+}
+.logo-tag {
+  font-size:10px;
+  color:var(--text-muted);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  line-height:1;
+  margin-top:2px;
+}
+.topbar-right { display:flex; align-items:center; gap:14px; }
+.status-chip {
+  display:flex; align-items:center; gap:6px;
+  background:rgba(0,224,150,0.1);
+  border:1px solid rgba(0,224,150,0.3);
+  border-radius:20px; padding:5px 12px;
+  font-size:11px; font-weight:700;
+  color:var(--success); letter-spacing:0.5px;
+}
+.status-chip.maint {
+  background:rgba(155,109,255,0.1);
+  border-color:rgba(155,109,255,0.3);
+  color:var(--purple);
+}
+.sdot { width:7px; height:7px; border-radius:50%; background:currentColor; animation:blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+.clock { font-family:'DM Mono',monospace; font-size:13px; color:var(--text-sec); }
+.phone-btn {
+  background:var(--yellow); color:var(--black);
+  border:none; border-radius:8px;
+  padding:8px 16px;
+  font-size:13px; font-weight:700;
+  cursor:pointer; letter-spacing:0.5px;
+  transition:all 0.2s;
+}
+.phone-btn:hover { background:var(--yellow-dark); transform:translateY(-1px); }
+
+/* BODY LAYOUT */
+.body-layout { display:flex; flex:1; }
+
+/* SIDEBAR */
+.sidebar {
+  width:230px; flex-shrink:0;
+  background:rgba(17,17,17,0.95);
+  border-right:1px solid var(--border);
+  padding:20px 0;
+  display:flex; flex-direction:column;
+  position:sticky; top:64px;
+  height:calc(100vh - 64px);
+  overflow-y:auto;
+}
+.nav-label {
+  font-size:10px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--text-muted); padding:0 20px;
+  margin:20px 0 8px;
+}
+.nav-label:first-child { margin-top:0; }
+.nav-item {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 20px;
+  font-size:14px; font-weight:500;
+  color:var(--text-sec);
+  cursor:pointer;
+  border-left:3px solid transparent;
+  transition:all 0.2s;
+}
+.nav-item:hover { color:var(--text); background:rgba(255,215,0,0.05); border-left-color:var(--yellow); }
+.nav-item.active { color:var(--yellow); background:rgba(255,215,0,0.08); border-left-color:var(--yellow); font-weight:600; }
+.nav-icon { font-size:17px; width:22px; text-align:center; }
+.nbadge {
+  margin-left:auto; background:var(--yellow); color:var(--black);
+  font-size:10px; font-weight:800;
+  padding:2px 7px; border-radius:10px;
+}
+
+.sidebar-footer {
+  margin-top:auto; padding:16px 20px;
+  border-top:1px solid var(--border);
+}
+.health-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+.hbar-wrap { background:rgba(255,255,255,0.06); border-radius:4px; height:4px; margin-bottom:6px; }
+.hbar { height:4px; border-radius:4px; background:linear-gradient(90deg,var(--yellow),#fff176); }
+.hlabel { display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); }
+
+/* MAIN */
+.main { flex:1; padding:28px; overflow-y:auto; }
+
+/* PAGE HEADER */
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px; }
+.eyebrow { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--yellow); margin-bottom:6px; }
+.page-title { font-family:'Bebas Neue',sans-serif; font-size:40px; letter-spacing:2px; color:var(--text); line-height:1; }
+.page-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+/* BUTTONS */
+.btn { padding:10px 20px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; border:none; transition:all 0.2s; letter-spacing:0.3px; display:inline-flex; align-items:center; gap:6px; }
+.btn-primary { background:var(--yellow); color:var(--black); }
+.btn-primary:hover { background:var(--yellow-dark); transform:translateY(-1px); box-shadow:0 4px 20px var(--yellow-glow); }
+.btn-ghost { background:transparent; color:var(--text-sec); border:1px solid var(--border); }
+.btn-ghost:hover { border-color:var(--yellow); color:var(--text); }
+.btn-danger { background:rgba(255,59,92,0.15); color:var(--danger); border:1px solid rgba(255,59,92,0.3); }
+
+/* MAINTENANCE BANNER */
+.maint-banner {
+  display:none; background:rgba(155,109,255,0.08);
+  border:1px solid rgba(155,109,255,0.35);
+  border-radius:12px; padding:18px 24px;
+  margin-bottom:24px; align-items:center; gap:16px;
+}
+.maint-banner.show { display:flex; }
+.maint-title { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:2px; color:var(--purple); }
+.maint-desc { font-size:13px; color:var(--text-sec); }
+.maint-cd { font-family:'DM Mono',monospace; font-size:28px; color:var(--purple); }
+
+/* KPI STRIP */
+.kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+.kpi {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:12px; padding:20px;
+  position:relative; overflow:hidden;
+  transition:all 0.2s;
+}
+.kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--yellow),rgba(255,215,0,0.3)); }
+.kpi:hover { border-color:var(--yellow); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+.kpi-lbl { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; }
+.kpi-val { font-family:'Bebas Neue',sans-serif; font-size:40px; color:var(--text); line-height:1; margin-bottom:4px; }
+.kpi-delta { font-size:12px; font-weight:600; }
+.kpi-delta.up { color:var(--success); }
+.kpi-delta.warn { color:var(--warning); }
+.kpi-ico { position:absolute; top:18px; right:16px; font-size:24px; opacity:0.25; }
+
+/* PANEL */
+.panel { background:var(--panel); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+.ph { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); }
+.pt { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:1.5px; color:var(--text); display:flex; align-items:center; gap:8px; }
+.pt .ico { color:var(--yellow); }
+.pb { padding:20px; }
+.pa { font-size:12px; color:var(--yellow); cursor:pointer; font-weight:600; text-decoration:none; }
+.pa:hover { color:var(--yellow-dark); }
+
+/* GRIDS */
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
+.g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-bottom:20px; }
+.g21 { display:grid; grid-template-columns:2fr 1fr; gap:20px; margin-bottom:20px; }
+
+/* QUOTE FORM */
+.quote-form { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-group.full { grid-column:1/-1; }
+.form-label { font-size:12px; font-weight:700; letter-spacing:0.5px; color:var(--text-sec); text-transform:uppercase; }
+.form-input {
+  background:rgba(0,0,0,0.4); border:1px solid var(--border);
+  border-radius:8px; padding:11px 14px;
+  color:var(--text); font-family:'Barlow',sans-serif; font-size:14px;
+  transition:border-color 0.2s; outline:none;
+}
+.form-input:focus { border-color:var(--yellow); }
+.form-input::placeholder { color:var(--text-muted); }
+.form-select {
+  background:rgba(0,0,0,0.4); border:1px solid var(--border);
+  border-radius:8px; padding:11px 14px;
+  color:var(--text); font-family:'Barlow',sans-serif; font-size:14px;
+  outline:none; cursor:pointer;
+  transition:border-color 0.2s;
+  -webkit-appearance:none;
+}
+.form-select:focus { border-color:var(--yellow); }
+.form-select option { background:#1a1a1a; }
+
+/* UPLOAD ZONE */
+.upload-zone {
+  border:2px dashed var(--border);
+  border-radius:12px; padding:32px;
+  text-align:center; cursor:pointer;
+  transition:all 0.2s; background:rgba(0,0,0,0.2);
+  position:relative;
+}
+.upload-zone:hover, .upload-zone.drag { border-color:var(--yellow); background:rgba(255,215,0,0.04); }
+.upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.upload-icon { font-size:36px; margin-bottom:10px; }
+.upload-title { font-size:15px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.upload-sub { font-size:13px; color:var(--text-muted); }
+.upload-preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+.preview-thumb {
+  width:80px; height:60px;
+  border-radius:8px; background:rgba(255,215,0,0.1);
+  border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; color:var(--text-muted); text-align:center;
+  padding:4px; overflow:hidden; position:relative;
+}
+.preview-thumb img { width:100%; height:100%; object-fit:cover; border-radius:7px; }
+
+/* QUOTE ITEMS */
+.quote-item {
+  display:flex; align-items:center; gap:14px;
+  padding:14px; background:rgba(0,0,0,0.2);
+  border-radius:10px; margin-bottom:10px;
+  border-left:3px solid var(--yellow);
+  transition:all 0.2s; cursor:pointer;
+}
+.quote-item:hover { background:rgba(255,215,0,0.05); }
+.quote-item:last-child { margin-bottom:0; }
+.qi-num {
+  font-family:'Bebas Neue',sans-serif; font-size:28px;
+  color:var(--yellow); min-width:40px;
+}
+.qi-info { flex:1; }
+.qi-company { font-size:14px; font-weight:700; color:var(--text); }
+.qi-detail { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.qi-badge {
+  font-size:11px; font-weight:700; padding:4px 10px;
+  border-radius:8px; text-transform:uppercase; letter-spacing:0.5px;
+}
+.qi-badge.new { background:rgba(255,215,0,0.15); color:var(--yellow); border:1px solid rgba(255,215,0,0.3); }
+.qi-badge.reviewed { background:rgba(0,224,150,0.15); color:var(--success); border:1px solid rgba(0,224,150,0.3); }
+.qi-badge.pending { background:rgba(255,149,0,0.15); color:var(--warning); border:1px solid rgba(255,149,0,0.3); }
+.qi-price { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--success); min-width:80px; text-align:right; }
+
+/* SCHEDULE */
+.sched-day { margin-bottom:20px; }
+.sched-date { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px; color:var(--yellow); margin-bottom:10px; }
+.sched-item {
+  display:flex; align-items:center; gap:14px;
+  padding:12px 14px; background:rgba(0,0,0,0.2);
+  border-radius:10px; margin-bottom:8px;
+  border:1px solid var(--border); transition:all 0.2s;
+}
+.sched-item:hover { border-color:var(--yellow); }
+.sched-time { font-family:'DM Mono',monospace; font-size:13px; color:var(--yellow); min-width:65px; font-weight:500; }
+.sched-info { flex:1; }
+.sched-company { font-size:14px; font-weight:600; color:var(--text); }
+.sched-detail { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.sched-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:8px; }
+.sched-badge.confirmed { background:rgba(0,224,150,0.15); color:var(--success); }
+.sched-badge.travel { background:rgba(155,109,255,0.15); color:var(--purple); }
+.sched-badge.wrap { background:rgba(255,215,0,0.15); color:var(--yellow); }
+
+/* INTEL ITEMS */
+.intel {
+  padding:14px; background:rgba(0,0,0,0.2);
+  border-radius:10px; border-left:3px solid var(--yellow);
+  margin-bottom:10px; cursor:pointer; transition:all 0.2s;
+}
+.intel:hover { background:rgba(255,215,0,0.05); }
+.intel:last-child { margin-bottom:0; }
+.intel.high { border-left-color:var(--danger); }
+.intel.med { border-left-color:var(--warning); }
+.intel.low { border-left-color:var(--success); }
+.intel-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; }
+.intel-src { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); }
+.ipill { font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; }
+.ipill.high { background:rgba(255,59,92,0.2); color:var(--danger); }
+.ipill.med { background:rgba(255,149,0,0.2); color:var(--warning); }
+.ipill.low { background:rgba(0,224,150,0.2); color:var(--success); }
+.intel-text { font-size:13px; color:var(--text-sec); line-height:1.5; }
+.intel-text strong { color:var(--text); }
+.intel-time { font-size:11px; color:var(--text-muted); margin-top:5px; font-family:'DM Mono',monospace; }
+
+/* CLIENT CARDS */
+.client-card {
+  display:flex; align-items:center; gap:12px;
+  padding:12px; background:rgba(0,0,0,0.2);
+  border-radius:10px; margin-bottom:8px;
+  border:1px solid var(--border); cursor:pointer;
+  transition:all 0.2s;
+}
+.client-card:hover { border-color:var(--yellow); background:rgba(255,215,0,0.04); }
+.client-ava {
+  width:40px; height:40px; border-radius:10px;
+  background:linear-gradient(135deg,#333,#555);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:14px; color:var(--yellow);
+  flex-shrink:0;
+}
+.client-info { flex:1; }
+.client-name { font-size:14px; font-weight:600; color:var(--text); }
+.client-detail { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.client-val { text-align:right; }
+.client-val-num { font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--yellow); }
+.client-val-lbl { font-size:10px; color:var(--text-muted); text-transform:uppercase; }
+
+/* CHAT */
+.chat-window {
+  background:rgba(0,0,0,0.3); border-radius:12px;
+  height:320px; overflow-y:auto;
+  padding:16px; margin-bottom:14px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.chat-msg { display:flex; gap:10px; align-items:flex-start; }
+.chat-msg.user { flex-direction:row-reverse; }
+.chat-ava {
+  width:30px; height:30px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; flex-shrink:0;
+}
+.chat-ava.agent { background:var(--yellow); color:var(--black); font-size:12px; font-weight:800; }
+.chat-ava.user { background:rgba(255,255,255,0.1); }
+.chat-bubble {
+  max-width:75%; padding:10px 14px;
+  border-radius:12px; font-size:13px; line-height:1.6;
+}
+.chat-msg.agent .chat-bubble { background:rgba(255,215,0,0.08); border:1px solid rgba(255,215,0,0.15); color:var(--text); border-top-left-radius:2px; }
+.chat-msg.user .chat-bubble { background:rgba(255,255,255,0.07); color:var(--text-sec); border-top-right-radius:2px; }
+.typing { display:flex; align-items:center; gap:4px; padding:12px 14px; }
+.typing span { width:6px; height:6px; background:var(--yellow); border-radius:50%; animation:bounce 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay:0.2s; }
+.typing span:nth-child(3) { animation-delay:0.4s; }
+@keyframes bounce { 0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)} }
+
+/* CHATBAR */
+.chatbar {
+  background:rgba(10,10,10,0.97);
+  border-top:1px solid var(--border);
+  padding:14px 28px;
+  display:flex; gap:12px; align-items:center;
+  position:sticky; bottom:0; z-index:100;
+}
+.chat-wrap {
+  flex:1; display:flex; align-items:center;
+  background:rgba(0,0,0,0.5); border:1px solid var(--border);
+  border-radius:12px; padding:0 16px; gap:10px;
+  transition:border-color 0.2s;
+}
+.chat-wrap:focus-within { border-color:var(--yellow); }
+.chat-pfx { font-family:'DM Mono',monospace; font-size:13px; color:var(--yellow); white-space:nowrap; }
+.chat-in {
+  flex:1; background:none; border:none; outline:none;
+  color:var(--text); font-family:'Barlow',sans-serif; font-size:14px;
+  padding:13px 0;
+}
+.chat-in::placeholder { color:var(--text-muted); }
+.chat-go {
+  background:var(--yellow); border:none; border-radius:8px;
+  width:42px; height:42px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; transition:all 0.2s; flex-shrink:0;
+}
+.chat-go:hover { background:var(--yellow-dark); transform:scale(1.05); }
+
+/* FEED */
+.feed-item { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.04); align-items:flex-start; }
+.feed-item:last-child { border-bottom:none; }
+.fdot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+.fdot.y { background:var(--yellow); }
+.fdot.g { background:var(--success); }
+.fdot.r { background:var(--danger); }
+.fdot.p { background:var(--purple); }
+.fdot.w { background:var(--warning); }
+.feed-content { flex:1; }
+.feed-text { font-size:13px; color:var(--text-sec); line-height:1.5; }
+.feed-text strong { color:var(--text); }
+.feed-meta { font-size:11px; color:var(--text-muted); margin-top:3px; font-family:'DM Mono',monospace; }
+.ftag {
+  font-size:10px; font-weight:800; padding:2px 8px;
+  border-radius:6px; flex-shrink:0; margin-top:2px;
+  letter-spacing:0.5px;
+}
+.ftag.q { background:rgba(255,215,0,0.15); color:var(--yellow); }
+.ftag.s { background:rgba(0,224,150,0.15); color:var(--success); }
+.ftag.i { background:rgba(255,149,0,0.15); color:var(--warning); }
+.ftag.c { background:rgba(155,109,255,0.15); color:var(--purple); }
+
+/* PROGRESS RING */
+.ring-row { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+.ring-wrap { position:relative; width:64px; height:64px; flex-shrink:0; }
+.ring-svg { transform:rotate(-90deg); }
+.ring-track { fill:none; stroke:rgba(255,255,255,0.06); stroke-width:6; }
+.ring-fill { fill:none; stroke-width:6; stroke-linecap:round; }
+.ring-ctr { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:14px; color:var(--text); }
+.ring-lbl { font-size:13px; font-weight:600; color:var(--text-sec); }
+.ring-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(255,215,0,0.2); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(255,215,0,0.4); }
+
+/* TABS */
+.tabs { display:flex; gap:4px; background:rgba(0,0,0,0.3); border-radius:10px; padding:4px; width:fit-content; margin-bottom:20px; }
+.tab { padding:7px 18px; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; color:var(--text-muted); transition:all 0.2s; border:none; background:none; }
+.tab.active { background:var(--yellow); color:var(--black); }
+.tab:hover:not(.active) { color:var(--text); }
+
+/* RESPONSIVE */
+@media(max-width:1100px) { .kpi-strip { grid-template-columns:repeat(2,1fr); } }
+@media(max-width:900px) {
+  .sidebar { display:none; }
+  .g2,.g21,.g3 { grid-template-columns:1fr; }
+  .main { padding:16px; }
+  .kpi-strip { grid-template-columns:1fr 1fr; }
+  .quote-form { grid-template-columns:1fr; }
+}
+@media(max-width:600px) {
+  .topbar { padding:0 16px; }
+  .phone-btn { display:none; }
+  .kpi-strip { grid-template-columns:1fr 1fr; }
+  .page-title { font-size:30px; }
+  .chatbar { padding:10px 16px; }
+}
+
+/* ANIMATIONS */
+.fade-up { animation:fadeUp 0.45s ease both; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<div class="bg-texture"></div>
+<div class="bg-grid"></div>
+
+<div class="app">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-icon">🚛</div>
+    <div>
+      <div class="logo-name">The Decal Dudes</div>
+      <div class="logo-tag">AI Command Center</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-chip" id="statusChip"><div class="sdot"></div><span id="statusTxt">SYSTEMS ACTIVE</span></div>
+    <div class="clock" id="clockEl">--:--:--</div>
+    <button class="phone-btn" onclick="window.open('tel:4077397724')">📞 407-739-7724</button>
+  </div>
+</header>
+
+<div class="body-layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="nav-label">Main</div>
+  <div class="nav-item active" onclick="go('dashboard')"><span class="nav-icon">⬡</span>Dashboard</div>
+  <div class="nav-item" onclick="go('activity')"><span class="nav-icon">◎</span>Activity Log<span class="nbadge">8</span></div>
+
+  <div class="nav-label">Agent Modules</div>
+  <div class="nav-item" onclick="go('quotes')"><span class="nav-icon">📋</span>Quote Requests<span class="nbadge" id="qbadge">5</span></div>
+  <div class="nav-item" onclick="go('scheduler')"><span class="nav-icon">📅</span>Scheduler</div>
+  <div class="nav-item" onclick="go('clients')"><span class="nav-icon">🤝</span>Client Accounts</div>
+  <div class="nav-item" onclick="go('intel')"><span class="nav-icon">📡</span>Industry Intel<span class="nbadge">7</span></div>
+  <div class="nav-item" onclick="go('chat')"><span class="nav-icon">💬</span>AI Chatbot</div>
+
+  <div class="nav-label">System</div>
+  <div class="nav-item" onclick="go('maintenance')"><span class="nav-icon">⚙️</span>Maintenance</div>
+  <div class="nav-item" onclick="go('settings')"><span class="nav-icon">◈</span>Settings</div>
+
+  <div class="sidebar-footer">
+    <div class="health-label">System Health</div>
+    <div class="hbar-wrap"><div class="hbar" style="width:97%"></div></div>
+    <div class="hlabel"><span>Uptime</span><span>97%</span></div>
+    <div style="margin-top:8px"></div>
+    <div class="hbar-wrap"><div class="hbar" style="width:91%"></div></div>
+    <div class="hlabel"><span>Quote Rate</span><span>91%</span></div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main" id="mainArea">
+
+  <!-- MAINTENANCE BANNER -->
+  <div class="maint-banner" id="maintBanner">
+    <div style="font-size:32px">🔧</div>
+    <div style="flex:1">
+      <div class="maint-title">MAINTENANCE WINDOW ACTIVE</div>
+      <div class="maint-desc">The Decal Dudes AI Agent is performing nightly diagnostics and optimization. All modules resume at 1:30 AM.</div>
+    </div>
+    <div class="maint-cd" id="maintCD">00:00</div>
+  </div>
+
+  <!-- ═══════════════ DASHBOARD ═══════════════ -->
+  <div id="s-dashboard">
+    <div class="page-header fade-up">
+      <div>
+        <div class="eyebrow">Command Center</div>
+        <div class="page-title">DASHBOARD</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost" onclick="go('quotes')">📋 New Quote</button>
+        <button class="btn btn-primary" onclick="go('scheduler')">📅 Schedule Job</button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-strip">
+      <div class="kpi fade-up">
+        <div class="kpi-ico">📋</div>
+        <div class="kpi-lbl">Open Quotes</div>
+        <div class="kpi-val" id="kq">5</div>
+        <div class="kpi-delta up">▲ 3 new today</div>
+      </div>
+      <div class="kpi fade-up">
+        <div class="kpi-ico">📅</div>
+        <div class="kpi-lbl">Jobs This Week</div>
+        <div class="kpi-val">8</div>
+        <div class="kpi-delta up">▲ Fully booked</div>
+      </div>
+      <div class="kpi fade-up">
+        <div class="kpi-ico">🤝</div>
+        <div class="kpi-lbl">Active Clients</div>
+        <div class="kpi-val">24</div>
+        <div class="kpi-delta up">▲ 2 new this month</div>
+      </div>
+      <div class="kpi fade-up">
+        <div class="kpi-ico">💰</div>
+        <div class="kpi-lbl">Revenue (MTD)</div>
+        <div class="kpi-val" style="font-size:32px">$18.4K</div>
+        <div class="kpi-delta up">▲ +22% vs last month</div>
+      </div>
+    </div>
+
+    <div class="g21">
+      <!-- ACTIVITY FEED -->
+      <div class="panel">
+        <div class="ph">
+          <div class="pt"><span class="ico">◎</span>Live Activity</div>
+          <a class="pa" onclick="go('activity')">View All →</a>
+        </div>
+        <div class="pb" style="padding-top:8px;padding-bottom:8px;">
+          <div class="feed-item">
+            <div class="fdot y"></div>
+            <div class="feed-content">
+              <div class="feed-text"><strong>New quote request</strong> — Arrow Logistics, 14-trailer fleet, Orlando FL</div>
+              <div class="feed-meta">4 min ago · Quote Agent</div>
+            </div>
+            <span class="ftag q">QUOTE</span>
+          </div>
+          <div class="feed-item">
+            <div class="fdot g"></div>
+            <div class="feed-content">
+              <div class="feed-text"><strong>Job confirmed</strong> — Ryder Transportation, 3 trailers, Miami — Oct 16 7:00 AM</div>
+              <div class="feed-meta">22 min ago · Scheduler</div>
+            </div>
+            <span class="ftag s">SCHED</span>
+          </div>
+          <div class="feed-item">
+            <div class="fdot w"></div>
+            <div class="feed-content">
+              <div class="feed-text"><strong>Industry alert:</strong> Werner Enterprises acquiring 400 trailers in Southeast — rebranding likely</div>
+              <div class="feed-meta">1 hr ago · Intel</div>
+            </div>
+            <span class="ftag i">INTEL</span>
+          </div>
+          <div class="feed-item">
+            <div class="fdot y"></div>
+            <div class="feed-content">
+              <div class="feed-text"><strong>Quote sent</strong> — Southeastern Freight, $4,200 estimate, 8 trailers</div>
+              <div class="feed-meta">2 hr ago · Quote Agent</div>
+            </div>
+            <span class="ftag q">QUOTE</span>
+          </div>
+          <div class="feed-item">
+            <div class="fdot p"></div>
+            <div class="feed-content">
+              <div class="feed-text"><strong>Client check-in sent</strong> — Amazon DSP Orlando, satisfaction survey triggered</div>
+              <div class="feed-meta">3 hr ago · Client Agent</div>
+            </div>
+            <span class="ftag c">CLIENT</span>
+          </div>
+          <div class="feed-item">
+            <div class="fdot g"></div>
+            <div class="feed-content">
+              <div class="feed-text"><strong>Job completed</strong> — FedEx Ground Hub, 6 trailers, $3,600 invoiced</div>
+              <div class="feed-meta">Yesterday · Scheduler</div>
+            </div>
+            <span class="ftag s">SCHED</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <!-- TODAY'S JOBS -->
+        <div class="panel">
+          <div class="ph"><div class="pt"><span class="ico">📅</span>Today's Jobs</div></div>
+          <div class="pb" style="padding-top:10px;padding-bottom:10px;">
+            <div class="sched-item" style="margin-bottom:8px;">
+              <div class="sched-time">7:00 AM</div>
+              <div class="sched-info">
+                <div class="sched-company">Knight Transport</div>
+                <div class="sched-detail">2 trailers · Jacksonville</div>
+              </div>
+              <span class="sched-badge confirmed">✓ Set</span>
+            </div>
+            <div class="sched-item" style="margin-bottom:8px;">
+              <div class="sched-time">11:00 AM</div>
+              <div class="sched-info">
+                <div class="sched-company">FedEx Ground Hub</div>
+                <div class="sched-detail">4 trailers · Tampa</div>
+              </div>
+              <span class="sched-badge travel">En Route</span>
+            </div>
+            <div class="sched-item">
+              <div class="sched-time">3:00 PM</div>
+              <div class="sched-info">
+                <div class="sched-company">Amazon DSP MCO</div>
+                <div class="sched-detail">1 trailer · Orlando</div>
+              </div>
+              <span class="sched-badge wrap">Pending</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MONTH PROGRESS -->
+        <div class="panel">
+          <div class="ph"><div class="pt"><span class="ico">📊</span>Month Goals</div></div>
+          <div class="pb">
+            <div class="ring-row">
+              <div class="ring-wrap">
+                <svg class="ring-svg" width="64" height="64" viewBox="0 0 64 64">
+                  <circle class="ring-track" cx="32" cy="32" r="26"/>
+                  <circle class="ring-fill" cx="32" cy="32" r="26" stroke="var(--yellow)" stroke-dasharray="163" stroke-dashoffset="36"/>
+                </svg>
+                <div class="ring-ctr">78%</div>
+              </div>
+              <div><div class="ring-lbl">Revenue Goal</div><div class="ring-sub">$18.4K / $23.5K</div></div>
+            </div>
+            <div class="ring-row">
+              <div class="ring-wrap">
+                <svg class="ring-svg" width="64" height="64" viewBox="0 0 64 64">
+                  <circle class="ring-track" cx="32" cy="32" r="26"/>
+                  <circle class="ring-fill" cx="32" cy="32" r="26" stroke="var(--success)" stroke-dasharray="163" stroke-dashoffset="49"/>
+                </svg>
+                <div class="ring-ctr">70%</div>
+              </div>
+              <div><div class="ring-lbl">Jobs Completed</div><div class="ring-sub">21 / 30 target</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="g3">
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">📋</span>Latest Quotes</div><a class="pa" onclick="go('quotes')">All →</a></div>
+        <div class="pb" style="padding-top:8px;padding-bottom:8px;">
+          <div class="quote-item" style="margin-bottom:8px;">
+            <div class="qi-num">1</div>
+            <div class="qi-info">
+              <div class="qi-company">Arrow Logistics</div>
+              <div class="qi-detail">14 trailers · Full removal</div>
+            </div>
+            <span class="qi-badge new">New</span>
+          </div>
+          <div class="quote-item" style="margin-bottom:0;">
+            <div class="qi-num">2</div>
+            <div class="qi-info">
+              <div class="qi-company">SE Freight Lines</div>
+              <div class="qi-detail">8 trailers · Adhesive cleanup</div>
+            </div>
+            <span class="qi-badge pending">Sent</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">📡</span>Top Intel</div><a class="pa" onclick="go('intel')">All →</a></div>
+        <div class="pb" style="padding-top:8px;padding-bottom:8px;">
+          <div class="intel high" style="margin-bottom:8px;">
+            <div class="intel-hdr"><span class="intel-src">Trucking News</span><span class="ipill high">HIGH</span></div>
+            <div class="intel-text"><strong>Werner Enterprises</strong> acquiring 400 SE trailers — rebrand opportunity</div>
+          </div>
+          <div class="intel med">
+            <div class="intel-hdr"><span class="intel-src">Industry DB</span><span class="ipill med">MED</span></div>
+            <div class="intel-text"><strong>12 Florida fleets</strong> up for renewal on DOT sticker contracts this month</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">💬</span>AI Chatbot</div><a class="pa" onclick="go('chat')">Open →</a></div>
+        <div class="pb">
+          <div style="font-size:14px;color:var(--text-sec);line-height:1.7;margin-bottom:14px;">Client-facing chatbot handles quote questions, job status, and scheduling 24/7 on your website.</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--success);font-weight:600;"><div class="sdot" style="background:var(--success);animation:blink 2s infinite;"></div>Live on thedecaldudes.com</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ QUOTE REQUESTS ═══════════════ -->
+  <div id="s-quotes" style="display:none">
+    <div class="page-header">
+      <div><div class="eyebrow">Module 1</div><div class="page-title">QUOTE REQUESTS</div></div>
+      <button class="btn btn-ghost" onclick="go('dashboard')">← Back</button>
+    </div>
+
+    <div class="g2">
+      <!-- SUBMIT NEW QUOTE -->
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">📋</span>New Quote Request Form</div></div>
+        <div class="pb">
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Clients fill this out to get a free estimate. The AI agent analyzes submissions and auto-generates pricing.</p>
+          <div class="quote-form">
+            <div class="form-group">
+              <label class="form-label">Company Name</label>
+              <input class="form-input" placeholder="e.g. Arrow Logistics LLC" id="qCompany"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Name</label>
+              <input class="form-input" placeholder="Full name" id="qContact"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input class="form-input" placeholder="(407) 000-0000" id="qPhone" type="tel"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input class="form-input" placeholder="email@company.com" id="qEmail" type="email"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Number of Trailers / Trucks</label>
+              <input class="form-input" placeholder="e.g. 6" id="qCount" type="number"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Service Needed</label>
+              <select class="form-select" id="qService">
+                <option value="">Select service...</option>
+                <option>Full Decal Removal</option>
+                <option>Wrap Removal</option>
+                <option>Partial Removal</option>
+                <option>Adhesive Residue Cleanup</option>
+                <option>Fleet Rebranding Package</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">DOT Numbers (comma separated)</label>
+              <input class="form-input" placeholder="e.g. DOT-1234567, DOT-7654321" id="qDOT"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Trailer Numbers</label>
+              <input class="form-input" placeholder="e.g. T-001 through T-014" id="qTrailer"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location / Service Area</label>
+              <input class="form-input" placeholder="City, State or Yard Address" id="qLocation"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Preferred Start Date</label>
+              <input class="form-input" type="date" id="qDate"/>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Upload Photos of Vehicles</label>
+              <div class="upload-zone" id="uploadZone" onclick="document.getElementById('photoUpload').click()">
+                <input type="file" id="photoUpload" accept="image/*" multiple onchange="handlePhotos(this)"/>
+                <div class="upload-icon">📸</div>
+                <div class="upload-title">Click or drag photos here</div>
+                <div class="upload-sub">Show us the decals / wraps — PNG, JPG, HEIC accepted</div>
+                <div class="upload-preview" id="photoPreview"></div>
+              </div>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Additional Notes</label>
+              <textarea class="form-input" rows="3" id="qNotes" placeholder="Anything special about this job — type of decals, full wrap vs vinyl, access restrictions, etc."></textarea>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:10px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="submitQuote()">🚛 Submit for AI Quote Analysis</button>
+          </div>
+          <div id="quoteResult" style="display:none;margin-top:16px;background:rgba(0,224,150,0.08);border:1px solid rgba(0,224,150,0.2);border-radius:10px;padding:16px;">
+            <div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:6px;">✓ Quote Request Received — AI Estimate Generated</div>
+            <div id="quoteEstimate" style="font-size:14px;color:var(--text-sec);line-height:1.6;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENDING QUOTES LIST -->
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">📬</span>Pending Quotes</div><span style="font-size:12px;color:var(--text-muted);">5 open</span></div>
+        <div class="pb" style="padding-top:8px;padding-bottom:8px;">
+          <div class="quote-item">
+            <div class="qi-num">1</div>
+            <div class="qi-info"><div class="qi-company">Arrow Logistics</div><div class="qi-detail">14 trailers · Orlando · Submitted 4 min ago</div></div>
+            <div style="text-align:right;"><span class="qi-badge new" style="display:block;margin-bottom:4px;">New</span><div style="font-size:12px;color:var(--text-muted);">Est. ~$5,600</div></div>
+          </div>
+          <div class="quote-item">
+            <div class="qi-num">2</div>
+            <div class="qi-info"><div class="qi-company">SE Freight Lines</div><div class="qi-detail">8 trailers · Tampa · Sent 2 hr ago</div></div>
+            <div style="text-align:right;"><span class="qi-badge pending" style="display:block;margin-bottom:4px;">Sent</span><div style="font-size:12px;color:var(--success);">$4,200</div></div>
+          </div>
+          <div class="quote-item">
+            <div class="qi-num">3</div>
+            <div class="qi-info"><div class="qi-company">Prime Reefer Transport</div><div class="qi-detail">22 trailers · Miami · Yesterday</div></div>
+            <div style="text-align:right;"><span class="qi-badge pending" style="display:block;margin-bottom:4px;">Sent</span><div style="font-size:12px;color:var(--success);">$8,800</div></div>
+          </div>
+          <div class="quote-item">
+            <div class="qi-num">4</div>
+            <div class="qi-info"><div class="qi-company">Walmart Fleet — FL</div><div class="qi-detail">6 trucks · Jacksonville · 2 days ago</div></div>
+            <div style="text-align:right;"><span class="qi-badge reviewed" style="display:block;margin-bottom:4px;">Accepted</span><div style="font-size:12px;color:var(--success);">$2,700</div></div>
+          </div>
+          <div class="quote-item">
+            <div class="qi-num">5</div>
+            <div class="qi-info"><div class="qi-company">Knight Transport SE</div><div class="qi-detail">4 trailers · Gainesville · 3 days ago</div></div>
+            <div style="text-align:right;"><span class="qi-badge reviewed" style="display:block;margin-bottom:4px;">Accepted</span><div style="font-size:12px;color:var(--success);">$1,600</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SCHEDULER ═══════════════ -->
+  <div id="s-scheduler" style="display:none">
+    <div class="page-header">
+      <div><div class="eyebrow">Module 2</div><div class="page-title">JOB SCHEDULER</div></div>
+      <button class="btn btn-ghost" onclick="go('dashboard')">← Back</button>
+    </div>
+    <div class="g2">
+      <div>
+        <div class="sched-day">
+          <div class="sched-date">TODAY — OCT 14</div>
+          <div class="sched-item"><div class="sched-time">7:00 AM</div><div class="sched-info"><div class="sched-company">Knight Transport</div><div class="sched-detail">2 trailers · Full removal · Jacksonville Yard</div></div><span class="sched-badge confirmed">✓ Complete</span></div>
+          <div class="sched-item"><div class="sched-time">11:00 AM</div><div class="sched-info"><div class="sched-company">FedEx Ground Hub</div><div class="sched-detail">4 trailers · Wrap removal + cleanup · Tampa</div></div><span class="sched-badge travel">En Route</span></div>
+          <div class="sched-item"><div class="sched-time">3:00 PM</div><div class="sched-info"><div class="sched-company">Amazon DSP MCO</div><div class="sched-detail">1 trailer · Decal removal · Orlando Hub</div></div><span class="sched-badge wrap">Pending</span></div>
+        </div>
+        <div class="sched-day">
+          <div class="sched-date">TOMORROW — OCT 15</div>
+          <div class="sched-item"><div class="sched-time">8:00 AM</div><div class="sched-info"><div class="sched-company">Ryder Transportation</div><div class="sched-detail">3 trailers · Full wrap removal · Miami</div></div><span class="sched-badge confirmed">✓ Confirmed</span></div>
+          <div class="sched-item"><div class="sched-time">1:00 PM</div><div class="sched-info"><div class="sched-company">Walmart Fleet FL</div><div class="sched-detail">6 trucks · DOT sticker removal · Orlando</div></div><span class="sched-badge confirmed">✓ Confirmed</span></div>
+        </div>
+        <div class="sched-day">
+          <div class="sched-date">WED — OCT 16</div>
+          <div class="sched-item"><div class="sched-time">9:00 AM</div><div class="sched-info"><div class="sched-company">SE Freight Lines</div><div class="sched-detail">8 trailers · Adhesive cleanup · Tampa</div></div><span class="sched-badge wrap">Awaiting Confirm</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">📅</span>Book a Job</div></div>
+        <div class="pb">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="form-group"><label class="form-label">Client Name</label><input class="form-input" placeholder="Company or contact name"/></div>
+            <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date"/></div>
+            <div class="form-group"><label class="form-label">Time</label><input class="form-input" type="time"/></div>
+            <div class="form-group"><label class="form-label">Location</label><input class="form-input" placeholder="Address or yard location"/></div>
+            <div class="form-group"><label class="form-label">Job Type</label>
+              <select class="form-select">
+                <option>Full Decal Removal</option>
+                <option>Wrap Removal</option>
+                <option>Adhesive Cleanup</option>
+                <option>Fleet Rebranding</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label"># Vehicles</label><input class="form-input" type="number" placeholder="How many?"/></div>
+            <button class="btn btn-primary" style="width:100%;margin-top:4px;">📅 Book This Job</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ CLIENTS ═══════════════ -->
+  <div id="s-clients" style="display:none">
+    <div class="page-header">
+      <div><div class="eyebrow">Module 3</div><div class="page-title">CLIENT ACCOUNTS</div></div>
+      <button class="btn btn-ghost" onclick="go('dashboard')">← Back</button>
+    </div>
+    <div class="g2">
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">🤝</span>Active Clients</div><span style="font-size:12px;color:var(--text-muted);">24 accounts</span></div>
+        <div class="pb" style="padding-top:8px;padding-bottom:8px;">
+          <div class="client-card"><div class="client-ava">FG</div><div class="client-info"><div class="client-name">FedEx Ground</div><div class="client-detail">Tampa Hub · Recurring fleet client</div></div><div class="client-val"><div class="client-val-num">$18.2K</div><div class="client-val-lbl">Lifetime</div></div></div>
+          <div class="client-card"><div class="client-ava">WM</div><div class="client-info"><div class="client-name">Walmart Fleet FL</div><div class="client-detail">Orlando · DOT removal specialist</div></div><div class="client-val"><div class="client-val-num">$14.7K</div><div class="client-val-lbl">Lifetime</div></div></div>
+          <div class="client-card"><div class="client-ava">AZ</div><div class="client-info"><div class="client-name">Amazon DSP MCO</div><div class="client-detail">Orlando · Monthly recurring</div></div><div class="client-val"><div class="client-val-num">$9.6K</div><div class="client-val-lbl">Lifetime</div></div></div>
+          <div class="client-card"><div class="client-ava">RY</div><div class="client-info"><div class="client-name">Ryder Transportation</div><div class="client-detail">Miami · Fleet rebranding</div></div><div class="client-val"><div class="client-val-num">$7.2K</div><div class="client-val-lbl">Lifetime</div></div></div>
+          <div class="client-card"><div class="client-ava">KT</div><div class="client-info"><div class="client-name">Knight Transport SE</div><div class="client-detail">Jacksonville · Wrap removal</div></div><div class="client-val"><div class="client-val-num">$5.4K</div><div class="client-val-lbl">Lifetime</div></div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">💬</span>Client Chat</div></div>
+        <div class="pb">
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Select a client account to open their dedicated AI chatbot thread. The agent handles status updates, invoices, and re-booking automatically.</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="go('chat')">💬 FedEx Ground — Open Chat</button>
+            <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="go('chat')">💬 Walmart Fleet FL — Open Chat</button>
+            <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="go('chat')">💬 Amazon DSP — Open Chat</button>
+            <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="go('chat')">💬 Ryder Transportation — Open Chat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ INTEL ═══════════════ -->
+  <div id="s-intel" style="display:none">
+    <div class="page-header">
+      <div><div class="eyebrow">Module 4</div><div class="page-title">INDUSTRY INTEL</div></div>
+      <button class="btn btn-ghost" onclick="go('dashboard')">← Back</button>
+    </div>
+    <div class="g2">
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">🔴</span>High Priority</div></div>
+        <div class="pb">
+          <div class="intel high"><div class="intel-hdr"><span class="intel-src">Trucking News · 1 hr ago</span><span class="ipill high">HIGH</span></div><div class="intel-text"><strong>Werner Enterprises acquiring 400 trailers in Southeast</strong> — full fleet rebrand expected. Contact their FL fleet ops manager directly.</div><div class="intel-time">Est. opportunity: $80,000–$160,000 contract</div></div>
+          <div class="intel high"><div class="intel-hdr"><span class="intel-src">FL DOT Database · today</span><span class="ipill high">HIGH</span></div><div class="intel-text"><strong>12 Florida trucking companies</strong> have DOT number updates pending — sticker compliance required within 60 days.</div><div class="intel-time">Action: Cold outreach campaign recommended</div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">🟡</span>Medium Priority</div></div>
+        <div class="pb">
+          <div class="intel med"><div class="intel-hdr"><span class="intel-src">Industry Reg · 2 days ago</span><span class="ipill med">MED</span></div><div class="intel-text"><strong>New FMCSA reflective tape standards</strong> going into effect Q1 — fleets will need trailer rebranding compliance.</div><div class="intel-time">Target fleets with 10+ trailers in FL, GA, SC</div></div>
+          <div class="intel med"><div class="intel-hdr"><span class="intel-src">LinkedIn · today</span><span class="ipill med">MED</span></div><div class="intel-text"><strong>Southeastern Freight Lines</strong> posted a job listing for a "Fleet Image Manager" — signals upcoming rebrand initiative.</div><div class="intel-time">Opportunity: Fleet rebranding consultation</div></div>
+          <div class="intel low"><div class="intel-hdr"><span class="intel-src">News · yesterday</span><span class="ipill low">LOW</span></div><div class="intel-text"><strong>Amazon adding 200 delivery vans to MCO market</strong> — Prime branded wraps will need periodic refresh/removal.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><div class="pt"><span class="ico">📡</span>Monitoring Sources</div></div>
+      <div class="pb">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;flex-wrap:wrap;">
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;margin-bottom:6px;">🚛</div><div style="font-size:12px;font-weight:700;color:var(--text-sec);">Trucking News</div><div style="font-size:11px;color:var(--success);margin-top:4px;">● Live</div></div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;margin-bottom:6px;">🏛️</div><div style="font-size:12px;font-weight:700;color:var(--text-sec);">FL DOT / FMCSA</div><div style="font-size:11px;color:var(--success);margin-top:4px;">● Live</div></div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;margin-bottom:6px;">💼</div><div style="font-size:12px;font-weight:700;color:var(--text-sec);">LinkedIn</div><div style="font-size:11px;color:var(--success);margin-top:4px;">● Live</div></div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;margin-bottom:6px;">📰</div><div style="font-size:12px;font-weight:700;color:var(--text-sec);">Fleet News Daily</div><div style="font-size:11px;color:var(--success);margin-top:4px;">● Live</div></div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;margin-bottom:6px;">📋</div><div style="font-size:12px;font-weight:700;color:var(--text-sec);">Corp Filings</div><div style="font-size:11px;color:var(--success);margin-top:4px;">● Live</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ CHATBOT ═══════════════ -->
+  <div id="s-chat" style="display:none">
+    <div class="page-header">
+      <div><div class="eyebrow">Module 5</div><div class="page-title">AI CHATBOT</div></div>
+      <button class="btn btn-ghost" onclick="go('dashboard')">← Back</button>
+    </div>
+    <div class="g2">
+      <div class="panel">
+        <div class="ph">
+          <div class="pt"><span class="ico">💬</span>Decal Dudes AI Assistant</div>
+          <span style="font-size:12px;color:var(--success);font-weight:600;">● Active</span>
+        </div>
+        <div class="pb">
+          <div class="chat-window" id="chatWindow">
+            <div class="chat-msg agent">
+              <div class="chat-ava agent">DD</div>
+              <div class="chat-bubble">Hey there! 👋 I'm the Decal Dudes AI assistant. I can help you get a free quote, check your job status, or answer questions about our decal removal services. What can I help you with today?</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="quickChat('I need a quote for my fleet')">Get a quote</button>
+            <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="quickChat('What services do you offer?')">Our services</button>
+            <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="quickChat('How long does decal removal take?')">How long does it take?</button>
+            <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="quickChat('Do you travel to my location?')">Do you travel?</button>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <input class="form-input" style="flex:1;" id="chatMsgIn" placeholder="Type your message..." onkeydown="if(event.key==='Enter')sendChatMsg()"/>
+            <button class="btn btn-primary" onclick="sendChatMsg()">Send ➤</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt"><span class="ico">⚙️</span>Chatbot Config</div></div>
+        <div class="pb">
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Configure what your AI chatbot knows and how it responds to clients.</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="form-group"><label class="form-label">Business Phone</label><input class="form-input" value="407-739-7724"/></div>
+            <div class="form-group"><label class="form-label">Service Area</label><input class="form-input" value="Florida — Nationwide Travel Available"/></div>
+            <div class="form-group"><label class="form-label">Base Price Per Trailer</label><input class="form-input" value="$350–$500 per trailer" placeholder="e.g. $400 per trailer"/></div>
+            <div class="form-group"><label class="form-label">Chatbot Tone</label>
+              <select class="form-select">
+                <option>Friendly & Professional</option>
+                <option>Casual & Friendly</option>
+                <option>Strictly Professional</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" style="width:100%;">💾 Save Config</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MAINTENANCE ═══════════════ -->
+  <div id="s-maintenance" style="display:none">
+    <div class="page-header">
+      <div><div class="eyebrow">System</div><div class="page-title">MAINTENANCE WINDOW</div></div>
+      <button class="btn btn-ghost" onclick="go('dashboard')">← Back</button>
+    </div>
+    <div class="panel">
+      <div class="ph"><div class="pt"><span class="ico">⚙️</span>Nightly Maintenance — 1:00 AM to 1:30 AM</div></div>
+      <div class="pb">
+        <p style="font-size:14px;color:var(--text-sec);margin-bottom:20px;">Every night between 1:00 AM and 1:30 AM, the Decal Dudes AI Agent automatically pauses all modules to run diagnostics, fix bugs, and optimize performance. Your clients will see a friendly "we'll be right back" message during this window.</p>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px;">
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:12px;text-align:center;"><div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--purple);margin-bottom:4px;">1:00–1:06</div><div style="font-size:11px;color:var(--text-muted);">Error Log Review</div></div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:12px;text-align:center;"><div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--purple);margin-bottom:4px;">1:06–1:13</div><div style="font-size:11px;color:var(--text-muted);">Auto Bug Repair</div></div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:12px;text-align:center;"><div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--purple);margin-bottom:4px;">1:13–1:21</div><div style="font-size:11px;color:var(--text-muted);">Data Sync</div></div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:12px;text-align:center;"><div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--purple);margin-bottom:4px;">1:21–1:26</div><div style="font-size:11px;color:var(--text-muted);">AI Model Update</div></div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:12px;text-align:center;"><div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--purple);margin-bottom:4px;">1:26–1:30</div><div style="font-size:11px;color:var(--text-muted);">Health Check</div></div>
+        </div>
+        <div style="padding:14px;background:rgba(155,109,255,0.08);border-radius:10px;border:1px solid rgba(155,109,255,0.2);">
+          <div style="font-size:13px;color:var(--text-sec);">Last maintenance: <strong style="color:var(--purple);">Today at 1:30 AM</strong> — All 5 modules passed. 0 critical errors. Quote form performance improved 12%.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS + ACTIVITY (simple) -->
+  <div id="s-settings" style="display:none">
+    <div class="page-header"><div><div class="eyebrow">System</div><div class="page-title">SETTINGS</div></div><button class="btn btn-ghost" onclick="go('dashboard')">← Back</button></div>
+    <div class="panel"><div class="ph"><div class="pt"><span class="ico">◈</span>Configuration</div></div><div class="pb"><div style="display:grid;gap:12px;"><div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(0,0,0,0.2);border-radius:10px;"><div><div style="font-size:14px;font-weight:600;">Business Name</div><div style="font-size:12px;color:var(--text-muted);">The Decal Dudes</div></div><button class="btn btn-ghost" style="font-size:12px;padding:6px 14px;">Edit</button></div><div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(0,0,0,0.2);border-radius:10px;"><div><div style="font-size:14px;font-weight:600;">Maintenance Window</div><div style="font-size:12px;color:var(--text-muted);">1:00 AM – 1:30 AM daily</div></div><button class="btn btn-ghost" style="font-size:12px;padding:6px 14px;">Edit</button></div><div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(0,0,0,0.2);border-radius:10px;"><div><div style="font-size:14px;font-weight:600;">Notifications</div><div style="font-size:12px;color:var(--text-muted);">Email + SMS enabled</div></div><button class="btn btn-ghost" style="font-size:12px;padding:6px 14px;">Edit</button></div></div></div></div>
+  </div>
+
+  <div id="s-activity" style="display:none">
+    <div class="page-header"><div><div class="eyebrow">System</div><div class="page-title">ACTIVITY LOG</div></div><button class="btn btn-ghost" onclick="go('dashboard')">← Back</button></div>
+    <div class="panel"><div class="pb" id="fullLog" style="padding-top:8px;padding-bottom:8px;"></div></div>
+  </div>
+
+</main>
+</div>
+
+<!-- CHATBAR (global) -->
+<div class="chatbar">
+  <div class="chat-wrap">
+    <span class="chat-pfx">DUDES AI ›</span>
+    <input class="chat-in" id="globalChat" placeholder="Ask anything — 'What quotes are pending?' or 'Who is my biggest client?'" onkeydown="if(event.key==='Enter')globalSend()"/>
+  </div>
+  <button class="chat-go" onclick="globalSend()">➤</button>
+</div>
+
+</div>
+
+<script>
+// ── CLOCK + MAINTENANCE ──
+function tick() {
+  const now = new Date();
+  const h=now.getHours(), m=now.getMinutes(), s=now.getSeconds();
+  const p=n=>String(n).padStart(2,'0');
+  document.getElementById('clockEl').textContent=`${p(h)}:${p(m)}:${p(s)}`;
+  const maint = h===1 && m<30;
+  const chip=document.getElementById('statusChip');
+  document.getElementById('statusTxt').textContent = maint?'MAINTENANCE MODE':'SYSTEMS ACTIVE';
+  chip.className='status-chip'+(maint?' maint':'');
+  document.getElementById('maintBanner').className='maint-banner'+(maint?' show':'');
+  if(maint){ const rem=29-m, rs=59-s; document.getElementById('maintCD').textContent=`${p(rem)}:${p(rs)}`; }
+}
+setInterval(tick,1000); tick();
+
+// ── NAVIGATION ──
+const allSections=['dashboard','quotes','scheduler','clients','intel','chat','maintenance','settings','activity'];
+function go(id){
+  allSections.forEach(s=>{ const el=document.getElementById('s-'+s); if(el) el.style.display=s===id?'block':'none'; });
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navMap={'dashboard':0,'activity':1,'quotes':2,'scheduler':3,'clients':4,'intel':5,'chat':6,'maintenance':7,'settings':8};
+  const items=document.querySelectorAll('.nav-item');
+  if(navMap[id]!==undefined && items[navMap[id]]) items[navMap[id]].classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='activity') buildLog();
+}
+
+// ── PHOTO UPLOAD PREVIEW ──
+function handlePhotos(input){
+  const preview=document.getElementById('photoPreview');
+  preview.innerHTML='';
+  Array.from(input.files).forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const div=document.createElement('div');
+      div.className='preview-thumb';
+      div.innerHTML=`<img src="${e.target.result}" alt="preview"/>`;
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+// Drag and drop
+const uz=document.getElementById('uploadZone');
+if(uz){
+  uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag');});
+  uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+  uz.addEventListener('drop',e=>{
+    e.preventDefault(); uz.classList.remove('drag');
+    const dt=e.dataTransfer; if(dt.files.length){ document.getElementById('photoUpload').files=dt.files; handlePhotos(document.getElementById('photoUpload')); }
+  });
+}
+
+// ── QUOTE SUBMISSION ──
+function submitQuote(){
+  const company=document.getElementById('qCompany').value||'Your fleet';
+  const count=document.getElementById('qCount').value||'1';
+  const service=document.getElementById('qService').value||'decal removal';
+  const location=document.getElementById('qLocation').value||'your location';
+  const n=parseInt(count)||1;
+  const low=n*350, high=n*520;
+  const result=document.getElementById('quoteResult');
+  const est=document.getElementById('quoteEstimate');
+  est.innerHTML=`<strong style="color:var(--yellow)">${company}</strong> — ${count} vehicle(s) · ${service}<br><br>
+  <strong>AI Estimate: $${low.toLocaleString()}–$${high.toLocaleString()}</strong><br>
+  Based on: ${n} vehicle(s) × standard ${service.toLowerCase()} rate for ${location}.<br><br>
+  📞 A Decal Dudes team member will call you within 2 business hours to confirm. Questions? Call <strong>407-739-7724</strong>.`;
+  result.style.display='block';
+  result.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── CHATBOT RESPONSES ──
+const botResponses = {
+  'quote': 'I\'d love to get you a free quote! 🚛 Head over to our Quote Request form and upload some photos of your trailers. We\'ll have an estimate back to you within 2 hours. Or call us directly at 407-739-7724!',
+  'services': 'We offer: ✅ Full decal removal ✅ Vinyl wrap removal ✅ Adhesive residue cleanup ✅ Fleet rebranding packages ✅ Mobile on-site service — we come to YOU anywhere in Florida and nationwide!',
+  'long': 'Most single-trailer jobs take 2–4 hours. A full fleet of 10+ trailers is typically completed in 1–2 days on-site. We work around your schedule to minimize downtime. 💪',
+  'travel': 'Absolutely! We are 100% mobile. Based in Florida, we travel to your yard, terminal, or facility — anywhere nationwide. No need to bring your trucks to us. 🗺️',
+  'price': 'Pricing depends on the size of your fleet and the type of removal needed. Most trailers run $350–$500 each. Full fleets get volume discounts. Get your free quote in the Quote Requests section!',
+  'dot': 'Yes! We handle DOT number decal removal and replacement as part of our service. We make sure everything stays FMCSA compliant. Just include your DOT numbers in your quote request.',
+  'contact': 'You can reach us at 📞 407-739-7724 or visit thedecaldudes.com. We\'re based in Florida and respond quickly!',
+};
+function getChatResponse(msg){
+  const m=msg.toLowerCase();
+  if(m.includes('quote')||m.includes('estimate')||m.includes('price')||m.includes('cost')) return botResponses.price;
+  if(m.includes('service')||m.includes('offer')||m.includes('do you')) return botResponses.services;
+  if(m.includes('long')||m.includes('time')||m.includes('fast')) return botResponses.long;
+  if(m.includes('travel')||m.includes('location')||m.includes('come to')) return botResponses.travel;
+  if(m.includes('dot')||m.includes('fmcsa')||m.includes('number')) return botResponses.dot;
+  if(m.includes('contact')||m.includes('phone')||m.includes('call')) return botResponses.contact;
+  return 'Great question! For the most accurate answer, call us at 📞 407-739-7724 or use the Quote Request form to get a free estimate. We\'re happy to help your fleet look its best! 🚛';
+}
+function addChatMsg(text, who){
+  const win=document.getElementById('chatWindow');
+  const div=document.createElement('div');
+  div.className='chat-msg '+who;
+  div.innerHTML=`<div class="chat-ava ${who}">${who==='agent'?'DD':'👤'}</div><div class="chat-bubble">${text}</div>`;
+  win.appendChild(div);
+  win.scrollTop=win.scrollHeight;
+}
+function sendChatMsg(){
+  const inp=document.getElementById('chatMsgIn');
+  const msg=inp.value.trim(); if(!msg) return;
+  addChatMsg(msg,'user'); inp.value='';
+  setTimeout(()=>{ addChatMsg(getChatResponse(msg),'agent'); }, 800);
+}
+function quickChat(msg){
+  document.getElementById('chatMsgIn').value=msg;
+  go('chat'); sendChatMsg();
+}
+
+// ── GLOBAL CHAT ──
+const globalResponses={
+  'quote': '5 open quote requests. Newest: Arrow Logistics (14 trailers, ~$5,600). Go to Quote Requests module to review.',
+  'client': 'Biggest client by revenue: FedEx Ground — $18,200 lifetime. 2nd: Walmart Fleet FL — $14,700. Open Client Accounts to see all 24.',
+  'schedule': 'Today: 3 jobs (Knight Transport 7AM ✓, FedEx Tampa 11AM en route, Amazon MCO 3PM pending). Tomorrow: 2 jobs confirmed.',
+  'intel': '7 new industry alerts. TOP: Werner Enterprises acquiring 400 SE trailers — est. $80K–$160K opportunity. Go to Industry Intel.',
+  'revenue': 'Month-to-date revenue: $18,400. Goal: $23,500. On track at 78%. Last month was $15,100 — up 22%.',
+};
+function globalSend(){
+  const inp=document.getElementById('globalChat');
+  const q=inp.value.toLowerCase().trim(); if(!q) return;
+  let resp='Try asking about: quotes, clients, schedule, industry intel, or revenue.';
+  for(const[k,v] of Object.entries(globalResponses)){ if(q.includes(k)){ resp=v; break; } }
+  alert('Decal Dudes AI: '+resp);
+  inp.value='';
+}
+
+// ── ACTIVITY LOG ──
+const logItems=[
+  {d:'y',t:'<strong>New quote request</strong> — Arrow Logistics, 14 trailers, Orlando',time:'4 min ago',tag:'QUOTE',tc:'q'},
+  {d:'g',t:'<strong>Job confirmed</strong> — Ryder Transportation, 3 trailers, Miami Oct 16',time:'22 min ago',tag:'SCHED',tc:'s'},
+  {d:'w',t:'<strong>Intel alert:</strong> Werner Enterprises acquiring 400 SE trailers',time:'1 hr ago',tag:'INTEL',tc:'i'},
+  {d:'y',t:'<strong>Quote sent</strong> — SE Freight, $4,200, 8 trailers',time:'2 hr ago',tag:'QUOTE',tc:'q'},
+  {d:'p',t:'<strong>Client check-in sent</strong> — Amazon DSP Orlando',time:'3 hr ago',tag:'CLIENT',tc:'c'},
+  {d:'g',t:'<strong>Job completed</strong> — FedEx Ground Hub, 6 trailers, $3,600 invoiced',time:'Yesterday',tag:'SCHED',tc:'s'},
+  {d:'y',t:'<strong>New quote</strong> — Prime Reefer Transport, 22 trailers, Miami',time:'Yesterday',tag:'QUOTE',tc:'q'},
+  {d:'w',t:'<strong>Intel:</strong> 12 FL fleets with DOT compliance deadlines this month',time:'2 days ago',tag:'INTEL',tc:'i'},
+];
+function buildLog(){
+  const el=document.getElementById('fullLog'); if(!el) return;
+  el.innerHTML=logItems.map(i=>`<div class="feed-item"><div class="fdot ${i.d}"></div><div class="feed-content"><div class="feed-text">${i.t}</div><div class="feed-meta">${i.time}</div></div><span class="ftag ${i.tc}">${i.tag}</span></div>`).join('');
+}
+</script>
+</body>
+</html>
